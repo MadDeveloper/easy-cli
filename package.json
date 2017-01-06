@@ -4,10 +4,9 @@
   "description": "Easy.js cli",
   "main": "easy.js",
   "bin": {
-      "easy": "bin/easy"
+    "easy": "bin/easy"
   },
-  "scripts": {
-  },
+  "scripts": {},
   "keywords": [
     "easy",
     "easy.js",
@@ -17,5 +16,8 @@
     "cli"
   ],
   "author": "Julien Sergent",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "resolve": "^1.2.0"
+  }
 }

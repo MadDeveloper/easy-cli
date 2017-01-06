@@ -1,0 +1,19 @@
+#!/usr/bin/env node
+const path = require( 'path' )
+const resolve = require( 'resolve' )
+
+resolve( 'easy', { basedir: process.cwd() }, ( error, easyPath ) => {
+    if ( null !== error ) {
+        console.error( "\nImpossible to find locally easy framework, please install it with npm install easy\n" )
+        return
+    }
+
+    /*
+     * Expose root project path
+     */
+    global.easyCli = global.easyCli || {}
+    global.easyCli.easyPath = easyPath
+    global.easyCli.appRootPath = path.resolve( `${easyCli.easyPath}/../../../` )
+
+    // Call requested script
+})
