@@ -1,0 +1,21 @@
+{
+  "name": "easy-cli",
+  "version": "1.0.0",
+  "description": "Easy.js cli",
+  "main": "easy.js",
+  "bin": {
+      "easy": "bin/easy"
+  },
+  "scripts": {
+  },
+  "keywords": [
+    "easy",
+    "easy.js",
+    "easy-js",
+    "easy",
+    "cli",
+    "cli"
+  ],
+  "author": "Julien Sergent",
+  "license": "MIT"
+}
