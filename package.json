@@ -18,6 +18,7 @@
   "author": "Julien Sergent",
   "license": "MIT",
   "dependencies": {
-    "resolve": "^1.2.0"
+    "resolve": "^1.2.0",
+    "yargs": "^6.6.0"
   }
 }
