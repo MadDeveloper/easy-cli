@@ -1,9 +1,7 @@
 #!/usr/bin/env node
-const path = require( 'path' )
 const resolve = require( 'resolve' )
+const path = require( 'path' )
 const yargs = require( 'yargs' )
-
-// check if man page is requested
 
 resolve( 'easy', { basedir: process.cwd() }, ( error, easyPath ) => {
     if ( null !== error ) {
@@ -11,14 +9,36 @@ resolve( 'easy', { basedir: process.cwd() }, ( error, easyPath ) => {
         return
     }
 
-    // check what is requested
-
     /*
      * Expose root project path
      */
-    global.easyCli = global.easyCli || {}
-    global.easyCli.easyPath = easyPath
-    global.easyCli.appRootPath = path.resolve( `${easyCli.easyPath}/../../../` )
+    global.easy = global.easy || {}
+    global.easy.easyPath = easyPath
+    global.easy.appRootPath = path.resolve( `${easy.easyPath}/../../../` )
 
-    // Call requested script
+    const generateBundle = require( '../lib/bundles/new' )
+    const restoreSkeleton = require( '../lib/bundles/restore' )
+    const showRoutes = require( '../lib/routes' )
+    const importDatabase = require( '../lib/database/import' )
+    const migrateDatabase = require( '../lib/database/migrate' )
+
+    // check if man page is requested
+    const argv = yargs
+        .usage( 'Usage: easy <command>' )
+        .command( 'show routes', 'Show all the application\' routes' )
+        .command( 'import database', 'Import the .sql database file into database (following configurations)' )
+        .command( 'migrate database', 'Migrate the database with schema.js file (Erases all data)' )
+        .command( generateBundle )
+        .command( 'restore [skeleton]', 'Restore bundle skeleton into it initial state' )
+        .example( 'easy generate bundle album', 'Create bundle album with console support' )
+        .alias( 'g', 'generate' )
+        .alias( 'm', 'migrate' )
+        .alias( 'i', 'import' )
+        .alias( 'r', 'restore' )
+        .alias( 'h', 'help' )
+        .nargs( 'generate:bundle', 1 )
+        .help()
+        .argv
+
+    console.log( argv )
 })
