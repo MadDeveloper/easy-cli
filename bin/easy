@@ -19,7 +19,9 @@ resolve( 'easy', { basedir: process.cwd() }, ( error, easyPath ) => {
     yargs
         .usage( 'Usage: easy <command>' )
         .commandDir( '../lib' )
-        .demandCommand( 1 )
+        .demandCommand( 1, 'No command specified' )
+        .wrap( Math.min( 100, yargs.terminalWidth() ) )
+        .alias( 'h', 'help' )
         .help()
         .argv
 })
