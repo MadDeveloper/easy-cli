@@ -18,10 +18,10 @@ module.exports.handler = argv => {
 	const titleError = "Error when initializing roles and users"
 	const consequenceError = "Initialization aborted."
 
-	dropTables()
+    dropTables()
 		.then( createTables )
 		.then( () => {
-			Console.success( "Schema updated." )
+			Console.success( "I finished the migration chief!." )
 			process.exit()
 		})
 		.catch( raiseError )
