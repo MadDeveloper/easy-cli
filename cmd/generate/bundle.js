@@ -19,6 +19,8 @@ module.exports.builder = yargs => {
 module.exports.handler = argv => {
     const schemaDatabaseService = application.container.get( 'database.schema' )
     const nameBundleFromArgv = argv.name
+    // console.log(argv)
+    // process.exit()
 
     if ( nameBundleFromArgv.length > 0 ) {
         const positiveAnswers = [ 'y', 'ye', 'yes' ]
