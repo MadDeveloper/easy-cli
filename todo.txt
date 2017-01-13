@@ -2,6 +2,7 @@
 ----------|  NOW  |----------
 -----------------------------
 
+- créer un dossier lib contenant des classes permettant une meilleure gestion de la cli (ex: Bundle)
 - pouvoir charger un skeleton plus enrichi dans les configs, check si un skeleton est dispo dans les configs, si ce n'est pas le cas on utilise celui par défaut dans easy
 - pouvoir générer une table db en fonction d'une entité et non d'un bundle
 - générer un controller
