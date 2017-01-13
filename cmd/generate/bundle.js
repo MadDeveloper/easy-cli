@@ -7,6 +7,8 @@ const { indexOf } = require( 'lodash' )
 const { Console } = require( 'easy/core' )
 const { Directory } = require( 'easy/fs' )
 const { transformAsBundleName, asSnakeCase, cleanAccents } = require( 'easy/lib/string' )
+const positiveAnswers = [ 'y', 'ye', 'yes' ]
+const negativeAnswers = [ 'n', 'no' ]
 
 module.exports.command = 'bundle <name>'
 module.exports.describe = 'Generate new bundle with console support'
@@ -17,22 +19,15 @@ module.exports.builder = yargs => {
         .demandCommand( 1, 'I need you provide the name of the new bundle.' )
 }
 module.exports.handler = argv => {
-    const schemaDatabaseService = application.container.get( 'database.schema' )
-    const bundleName = argv.name
-    console.log( argv )
-    process.exit()
+    Console.line()
 
-    const positiveAnswers = [ 'y', 'ye', 'yes' ]
-    const negativeAnswers = [ 'n', 'no' ]
+    const bundleName = confirmBundleName( transformAsBundleName( argv.name ) )
     const bundlesPath = path.resolve( kernel.path.bundles )
-
-    const skeletonBundlePath = path.resolve( `${kernel.path.root}/config/bundles/skeleton` )
-    const defaultSkeletonBundlePath = path.resolve( `${kernel.path.root}/node_modules/easy/.cache/bundles/skeleton` )
+    let skeletonBundlePath = path.resolve( `${kernel.path.root}/config/bundles/skeleton` )
+    const defaultSkeletonBundlePath = path.resolve( `${kernel.path.root}/node_modules/easy/.cache/skeleton` )
     const bundlesDefinitionPath = path.resolve( `${kernel.path.config}/bundles/activated.js` )
-
-    const formattedBundleName = transformAsBundleName( bundleName )
-    const formattedBundleNameCapitalized = formattedBundleName.capitalizeFirstLetter()
-    const formattedBundleNameDecapitalized = formattedBundleName.decapitalizeFirstLetter()
+    const formattedBundleNameCapitalized = bundleName.capitalizeFirstLetter()
+    const formattedBundleNameDecapitalized = bundleName.decapitalizeFirstLetter()
     const bundlePath = path.resolve( `${bundlesPath}/${formattedBundleNameDecapitalized}` )
 
     /*
@@ -41,32 +36,50 @@ module.exports.handler = argv => {
     const bundleDirectory = new Directory( `${bundlesPath}/${formattedBundleNameDecapitalized}` )
 
     if ( bundleDirectory.exists() ) {
-        exitWithError( `${formattedBundleNameCapitalized} bundle already exists.` )
+        exitWithError( `${bundleName} bundle already exists.` )
     }
 
-    if ( !checkIfSkeletonIsDefined() ) {
-        exitWithError( "Skeleton bundle not found." )
+    if ( !checkIfSkeletonIsDefined( skeletonBundlePath ) ) {
+        if ( !checkIfDefaultSkeletonIsDefined( defaultSkeletonBundlePath ) ) {
+            exitWithError( "Skeleton bundle not found." )
+        }
+
+        skeletonBundlePath = defaultSkeletonBundlePath
     }
 
-    if ( !createBundleDirectory() ) {
+    if ( !createBundleDirectory( bundleDirectory ) ) {
         exitWithError( "Error when trying to create bundle directory" )
     }
 
-    if ( askToActivateBundle() ) {
-        activateBundle( bundlesDefinitionPath )
-    }
-
     changeBundleRights( bundleDirectory )
-        .then( () => {
-            if ( askToActivateBundle() ) {
-                return activateBundle( bundleName, bundlesDefinitionPath, formattedBundleName )
+        .then( () => askToActivateBundle() )
+        .then( activate => {
+            if ( activate ) {
+                return activateBundle( bundleName, bundlesDefinitionPath, formattedBundleNameDecapitalized )
+            } else {
+                return Promise.resolve()
             }
-
-            return true
         })
         .then( () => createBundleStructure({ skeletonBundlePath, formattedBundleNameCapitalized, formattedBundleNameDecapitalized, bundlePath }) )
-        .then( exitProgram )
+        .then( () => exitProgram( bundleName ) )
         .catch( exitWithError )
+}
+
+/**
+ * confirmBundleName - confirm if bundle name transformed correspond to user attempts
+ *
+ * @param {string} name
+ *
+ * @returns {boolean}
+ */
+function confirmBundleName( name ) {
+    const newName = question( `Name of the bundle (default: ${name}): ` ).trim()
+
+    if ( newName.length > 0 ) {
+        return newName
+    }
+
+    return name
 }
 
 /**
@@ -74,14 +87,8 @@ module.exports.handler = argv => {
  *
  * @returns {boolean}
  */
-function checkIfSkeletonIsDefined() {
-    const skeletonDirectory = new Directory( skeletonBundlePath )
-
-    if ( !skeletonDirectory.exists() ) {
-        return checkIfDefaultSkeletonIsDefined()
-    }
-
-    return true
+function checkIfSkeletonIsDefined( skeletonBundlePath, defaultSkeletonBundlePath ) {
+    return new Directory( skeletonBundlePath ).exists()
 }
 
 /**
@@ -89,7 +96,7 @@ function checkIfSkeletonIsDefined() {
  *
  * @returns {boolean}
  */
-function checkIfDefaultSkeletonIsDefined() {
+function checkIfDefaultSkeletonIsDefined( defaultSkeletonBundlePath ) {
     return new Directory( defaultSkeletonBundlePath ).exists()
 }
 
@@ -148,8 +155,8 @@ function activateBundle( bundleName, bundlesDefinitionPath, formattedBundleNameD
             const addBundleImport = `const ${formattedBundleNameDecapitalized} = require( 'src/bundles/${bundleName}' )`
             data = `${addBundleImport}\n${data}`
 
-            const addBundleImportInExports = `module.exports$1 = [\n\t${formattedBundleNameDecapitalized},\n`
-            data = data.replace( /module\.exports(\s*)/gi, addBundleImportInExports )
+            const addBundleImportInExports = `module.exports$1= [\n\t${formattedBundleNameDecapitalized},`
+            data = data.replace( /module\.exports(\s*)=\s*\[/gi, addBundleImportInExports )
 
             fs.writeFile( bundlesDefinitionPath, data, { encoding: 'utf8' }, error => {
                 error ? reject( error ) : resolve()
@@ -193,8 +200,12 @@ function createBundleStructure({ skeletonBundlePath, formattedBundleNameCapitali
             // * error
             // * name
             dirStatsArray.forEach( directoryStat => {
-                const newDirectoryName = directoryStat.name.replace( /Skeleton/gi, formattedBundleNameCapitalized );
+                const newDirectoryName = directoryStat.name.replace( /Skeleton/gi, formattedBundleNameCapitalized )
 
+                /*
+                 * We don't create entity folder
+                 */
+                if ( 'entity' !== newDirectoryName ) {
                     fs.mkdir( `${bundlePath}/${newDirectoryName}`, error => {
                         if ( error ) {
                             reject( error )
@@ -206,6 +217,7 @@ function createBundleStructure({ skeletonBundlePath, formattedBundleNameCapitali
                             reject( chmodError )
                         }
                     })
+                }
             })
 
             next()
@@ -215,22 +227,31 @@ function createBundleStructure({ skeletonBundlePath, formattedBundleNameCapitali
             const skeletonFilePath = path.join( root, fileStats.name )
             const newBundleFilePath = path.resolve( `${bundlePath}${skeletonFilePath.replace( skeletonBundlePath, '' ).replace( /Skeleton/g, formattedBundleNameCapitalized ).replace( /skeleton/g, formattedBundleNameDecapitalized )}` )
 
-            try {
-                let data = fs.readFileSync( skeletonFilePath, 'utf8' )
-                const filename = fileStats.name
+            let data = fs.readFileSync( skeletonFilePath, 'utf8' )
+            const filename = fileStats.name
 
-                /*
-                 * We don't create entities file here, rather with cli when generating entity
-                 */
-                if ( -1 === filename.toLowerCase().indexOf( 'skeleton.js' ) && -1 === filename.toLowerCase().indexOf( 'skeleton.repository.js' ) ) {
-                    fs.writeFileSync( newBundleFilePath, data.replace( /Skeleton/g, formattedBundleNameCapitalized ).replace( /skeleton/g, formattedBundleNameDecapitalized ), { encoding: 'utf8' })
-                    fs.chmodSync( newBundleFilePath, parseInt( 755, 8 ) )
-                }
+            /*
+             * We don't create entities file here, rather with cli when generating entity
+             */
+            if ( 'skeleton.js' !== filename.toLowerCase() && 'skeleton.repository.js' !== filename.toLowerCase() ) {
+                fs.writeFile( newBundleFilePath, data.replace( /Skeleton/g, formattedBundleNameCapitalized ).replace( /skeleton/g, formattedBundleNameDecapitalized ), { encoding: 'utf8' }, error => {
+                    if ( error ) {
+                        reject( error )
+                        return
+                    }
 
-                next()
-            } catch( error ) {
-                reject( error )
+                    fs.chmod( newBundleFilePath, parseInt( 755, 8 ), error => {
+                        if ( error ) {
+                            reject( error )
+                            return
+                        }
+
+                        next()
+                    })
+                })
             }
+
+            next()
         })
 
         walker.on( "errors", ( root, nodeStatsArray, next ) => next() )
@@ -241,9 +262,9 @@ function createBundleStructure({ skeletonBundlePath, formattedBundleNameCapitali
 /**
  * exitProgram - exit program
  */
-function exitProgram() {
+function exitProgram( bundleName ) {
     Console.line()
-    Console.success( `Bundle ${formattedBundleNameCapitalized} created.`, true )
+    Console.success( `Bundle ${bundleName} created.`, true )
     Console.line()
 }
 
