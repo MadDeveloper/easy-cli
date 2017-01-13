@@ -6,9 +6,8 @@ const { question } = require( 'readline-sync' )
 const { indexOf } = require( 'lodash' )
 const { Console } = require( 'easy/core' )
 const { Directory } = require( 'easy/fs' )
-const { transformAsBundleName, asSnakeCase, cleanAccents } = require( 'easy/lib/string' )
-const positiveAnswers = [ 'y', 'ye', 'yes' ]
-const negativeAnswers = [ 'n', 'no' ]
+const { transform, cleanAccents } = require( 'easy/lib/string' )
+const { positiveAnswers, negativeAnswers } = require( '../../lib/answers' )
 
 module.exports.command = 'bundle <name>'
 module.exports.describe = 'Generate new bundle with console support'
@@ -21,7 +20,7 @@ module.exports.builder = yargs => {
 module.exports.handler = argv => {
     Console.line()
 
-    const bundleName = confirmBundleName( transformAsBundleName( argv.name ) )
+    const bundleName = confirmBundleName( transform.asBundleName( argv.name ) )
     const bundlesPath = path.resolve( kernel.path.bundles )
     let skeletonBundlePath = path.resolve( `${kernel.path.root}/config/bundles/skeleton` )
     const defaultSkeletonBundlePath = path.resolve( `${kernel.path.root}/node_modules/easy/.cache/skeleton` )
@@ -52,7 +51,7 @@ module.exports.handler = argv => {
     }
 
     changeBundleRights( bundleDirectory )
-        .then( () => askToActivateBundle() )
+        .then( askToActivateBundle )
         .then( activate => {
             if ( activate ) {
                 return activateBundle( bundleName, bundlesDefinitionPath, formattedBundleNameDecapitalized )
@@ -73,7 +72,7 @@ module.exports.handler = argv => {
  * @returns {boolean}
  */
 function confirmBundleName( name ) {
-    const newName = question( `Name of the bundle (default: ${name}): ` ).trim()
+    const newName = question( `Bundle name (default: ${name}): ` ).trim()
 
     if ( newName.length > 0 ) {
         return newName
@@ -103,7 +102,7 @@ function checkIfDefaultSkeletonIsDefined( defaultSkeletonBundlePath ) {
 /**
  * createBundleDirectory - create directory of the new bundle
  *
- * @returns {Promise} Description
+ * @returns {boolean} Description
  */
 function createBundleDirectory( bundleDirectory ) {
     return bundleDirectory.create()
