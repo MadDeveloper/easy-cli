@@ -5,6 +5,7 @@ const { Console } = require( 'easy/core' )
 const { transform } = require( 'easy/lib/string' )
 const { positiveAnswers, negativeAnswers } = require( '../../lib/answers' )
 const { Bundle, Skeleton } = require( '../../lib/bundle' )
+const { exitWithSuccess, exitWithError } = require( '../../lib/exit' )
 
 module.exports.command = 'bundle <name>'
 module.exports.describe = 'Generate new bundle with console support'
@@ -21,20 +22,25 @@ module.exports.handler = argv => {
     const bundle = new Bundle( bundleName, kernel )
     const skeleton = new Skeleton( kernel )
 
+    const errorInfos = {
+        title: 'Impossible to create bundle',
+        consequence: 'Creation aborted'
+    }
+
     skeleton
         .selectCorrect()
-        .catch( error => exitWithError( `Skeleton bundle not found. ${error}` ) )
+        .catch( error => exitWithError( errorInfos.title, `Skeleton bundle not found. ${error}`, errorInfos.consequence ) )
         .then( () => bundle.defineStructureSkeleton( skeleton ) )
         .then( () => bundle.exists() )
-        .then( error => exitWithError( `${bundleName} bundle already exists. ${error}` ) )
+        .then( error => exitWithError( errorInfos.title, `${bundleName} bundle already exists. ${error}`, errorInfos.consequence ) )
         .catch( () => bundle.createDirectory() )
-        .catch( error => exitWithError( `Error when trying to create bundle directory. ${error}` ) )
+        .catch( error => exitWithError( errorInfos.title, `Error when trying to create bundle directory. ${error}`, errorInfos.consequence ) )
         .then( askToActivateBundle )
         .then( activate => activate ? bundle.activate() : Promise.resolve() )
-        .catch( error => exitWithError( `Error when activating bundle. ${error}` ) )
+        .catch( error => exitWithError( errorInfos.title, `Error when activating bundle. ${error}`, errorInfos.consequence ) )
         .then( () => bundle.createStucture() )
-        .then( () => exitProgram( bundle ) )
-        .catch( error => exitWithError( `Error when creating bundle structure. ${error}` ) )
+        .then( () => exitWithSuccess( `Bundle ${bundle.name} created.` ) )
+        .catch( error => exitWithError( errorInfos.title, `Error when creating bundle structure. ${error}`, errorInfos.consequence ) )
 }
 
 /**
@@ -63,27 +69,4 @@ function askToActivateBundle() {
     const answerActivateBundle = question( 'Do you want to activate bundle? (y/n) ' ).trim().toLowerCase()
 
     return -1 !== indexOf( positiveAnswers, answerActivateBundle )
-}
-
-/**
- * exitProgram - exit program
- */
-function exitProgram( bundle ) {
-    Console.line()
-    Console.success( `Bundle ${bundle.name} created.`, true )
-    Console.line()
-}
-
-/**
- * exitWithError - exit program with an error
- *
- * @param {string} message
- */
-function exitWithError( message ) {
-    Console.error({
-        title: "Impossible to create bundle",
-        message,
-        consequence: "Creation aborted",
-        exit: 1
-    })
 }

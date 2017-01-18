@@ -2,6 +2,8 @@ const { kernel, application } = require( `${easy.appRootPath}/src/bootstrap` )
 const { transform } = require( 'easy/lib/string' )
 const { positiveAnswers, negativeAnswers } = require( '../../lib/answers' )
 const { question } = require( 'readline-sync' )
+const { Bundle, Skeleton } = require( '../../lib/bundle' )
+const { exitWithSuccess, exitWithError } = require( '../../lib/exit' )
 
 module.exports.command = 'controller <name> [bundle]'
 module.exports.describe = 'Generate new controller with console support'
@@ -17,19 +19,23 @@ module.exports.builder = yargs => {
         .demandCommand( 1, 'I need the name of the controller you want to create.' )
 }
 module.exports.handler = argv => {
+    Console.line()
+
     const controller = confirmControllerName( transform.asClassName( argv.name ) )
-    const bundle = argv.bundle
-
-    let skeletonBundlePath = path.resolve( `${kernel.path.root}/config/bundles/skeleton` )
-    const defaultSkeletonBundlePath = path.resolve( `${kernel.path.root}/node_modules/easy/.cache/skeleton` )
-
-    if ( !checkIfSkeletonIsDefined( skeletonBundlePath ) ) {
-        if ( !checkIfDefaultSkeletonIsDefined( defaultSkeletonBundlePath ) ) {
-            exitWithError( "Skeleton bundle not found." )
-        }
-
-        skeletonBundlePath = defaultSkeletonBundlePath
+    const bundleName = argv.bundle
+    const bundle = new Bundle( bundleName, kernel )
+    const skeleton = new Skeleton( kernel )
+    const errorInfos = {
+        title: 'Impossible to create controller',
+        consequence: 'Creation aborted'
     }
+
+    skeleton
+        .selectCorrect()
+        .catch( error => exitWithError( errorInfos.title, `Skeleton bundle not found. ${error}`, errorInfos.consequence ) )
+        .then( () => bundle.exists() )
+        .then( () => exitWithSucess( controller ) )
+        .catch( error => exitWithError( errorInfos.title, `${bundle.name} bundle doesn't exists. ${error}`, errorInfos.consequence ) )
 }
 
 /**
@@ -47,22 +53,4 @@ function confirmControllerName( name ) {
     }
 
     return name
-}
-
-/**
- * checkIfSkeletonIsDefined - check if skeleton directory exists in config
- *
- * @returns {boolean}
- */
-function checkIfSkeletonIsDefined( skeletonBundlePath, defaultSkeletonBundlePath ) {
-    return new Directory( skeletonBundlePath ).exists()
-}
-
-/**
- * checkIfDefaultSkeletonIsDefined - check if default skeleton exists (easy skeleton)
- *
- * @returns {boolean}
- */
-function checkIfDefaultSkeletonIsDefined( defaultSkeletonBundlePath ) {
-    return new Directory( defaultSkeletonBundlePath ).exists()
 }
