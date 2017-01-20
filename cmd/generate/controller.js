@@ -1,8 +1,9 @@
 const { kernel, application } = require( `${easy.appRootPath}/src/bootstrap` )
 const { transform } = require( 'easy/lib/string' )
+const { Console } = require( 'easy/core' )
 const { positiveAnswers, negativeAnswers } = require( '../../lib/answers' )
 const { question } = require( 'readline-sync' )
-const { Bundle, Skeleton } = require( '../../lib/bundle' )
+const { Bundle, Skeleton, Controller } = require( '../../lib/bundle' )
 const { exitWithSuccess, exitWithError } = require( '../../lib/exit' )
 
 module.exports.command = 'controller <name> [bundle]'
@@ -21,10 +22,12 @@ module.exports.builder = yargs => {
 module.exports.handler = argv => {
     Console.line()
 
-    const controller = confirmControllerName( transform.asClassName( argv.name ) )
+    const controllerName = confirmControllerName( transform.asClassName( argv.name ) )
+    const controllerFileName = confirmControllerFileName( transform.asControllerFileName( controllerName ) )
     const bundleName = argv.bundle
     const bundle = new Bundle( bundleName, kernel )
     const skeleton = new Skeleton( kernel )
+    const controller = new Controller( controllerName, controllerFileName, bundle )
     const errorInfos = {
         title: 'Impossible to create controller',
         consequence: 'Creation aborted'
@@ -33,9 +36,12 @@ module.exports.handler = argv => {
     skeleton
         .selectCorrect()
         .catch( error => exitWithError( errorInfos.title, `Skeleton bundle not found. ${error}`, errorInfos.consequence ) )
+        .then( () => bundle.defineStructureSkeleton( skeleton ) )
         .then( () => bundle.exists() )
-        .then( () => exitWithSucess( controller ) )
         .catch( error => exitWithError( errorInfos.title, `${bundle.name} bundle doesn't exists. ${error}`, errorInfos.consequence ) )
+        .then( () => controller.createFile() )
+        .then( () => exitWithSuccess( `Controller ${controller.name} created in bundle ${bundle.name}` ) )
+        .catch( error => exitWithError( errorInfos.title, error, errorInfos.consequence ) )
 }
 
 /**
@@ -53,4 +59,21 @@ function confirmControllerName( name ) {
     }
 
     return name
+}
+
+/**
+ * confirmControllerName - confirm if controller file name transformed correspond to user attempts
+ *
+ * @param {string} fileName
+ *
+ * @returns {boolean}
+ */
+function confirmControllerFileName( fileName ) {
+    const newFileName = question( `Controller file name (default: ${fileName}): ` ).trim()
+
+    if ( newFileName.length > 0 ) {
+        return newFileName
+    }
+
+    return fileName
 }
