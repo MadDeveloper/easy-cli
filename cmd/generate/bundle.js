@@ -33,7 +33,7 @@ module.exports.handler = argv => {
         .then( () => bundle.defineStructureSkeleton( skeleton ) )
         .then( () => bundle.exists() )
         .then( error => exitWithError( errorInfos.title, `${bundleName} bundle already exists. ${error}`, errorInfos.consequence ) )
-        .catch( () => bundle.createDirectory() )
+        .catch( () => bundle.createRootDirectory() )
         .catch( error => exitWithError( errorInfos.title, `Error when trying to create bundle directory. ${error}`, errorInfos.consequence ) )
         .then( askToActivateBundle )
         .then( activate => activate ? bundle.activate() : Promise.resolve() )
