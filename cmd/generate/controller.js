@@ -33,10 +33,9 @@ module.exports.handler = argv => {
         consequence: 'Creation aborted'
     }
 
-    skeleton
-        .selectCorrect()
+    bundle
+        .selectSkeleton( skeleton )
         .catch( error => exitWithError( errorInfos.title, `Skeleton bundle not found. ${error}`, errorInfos.consequence ) )
-        .then( () => bundle.defineStructureSkeleton( skeleton ) )
         .then( () => bundle.exists() )
         .catch( error => exitWithError( errorInfos.title, `${bundle.name} bundle doesn't exists. ${error}`, errorInfos.consequence ) )
         .then( () => controller.createFile() )

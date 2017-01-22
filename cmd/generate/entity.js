@@ -1,3 +1,11 @@
+const { kernel, application } = require( `${easy.appRootPath}/src/bootstrap` )
+const { transform } = require( 'easy/lib/string' )
+const { Console } = require( 'easy/core' )
+const { positiveAnswers, negativeAnswers } = require( '../../lib/answers' )
+const { question } = require( 'readline-sync' )
+const { Bundle, Skeleton, Entity } = require( '../../lib/bundle' )
+const { exitWithSuccess, exitWithError } = require( '../../lib/exit' )
+
 module.exports.command = 'entity <name> [bundle]'
 module.exports.describe = 'Generate new entity with console support'
 module.exports.builder = yargs => {
@@ -12,9 +20,7 @@ module.exports.builder = yargs => {
         .demandCommand( 1, 'Please, provide me the name of the entity and everything will be ok.' )
 }
 module.exports.handler = argv => {
-    const name = argv.name
-    const bundle = argv.bundle
-    console.log( 'entity' )
+    Console.line()
 
     let tableName = ''
     let properties = {}
@@ -23,7 +29,62 @@ module.exports.handler = argv => {
     const specialColumnType = [ 'increments', 'integer', 'bigInteger', 'text', 'string', 'float', 'decimal' ]
     const pathDatabaseSchema = `${kernel.path.config}/database/schema.js`
 
+
+    const entityName = confirmEntityName( transform.asClassName( argv.name ) )
+    const entityFileName = confirmEntityFileName( transform.asWord( entityName ) + '.js' )
+    const bundleName = argv.bundle
+    const bundle = new Bundle( bundleName, kernel )
+    const skeleton = new Skeleton( kernel )
+    const entity = new Entity( entityName, entityFileName, bundle )
+    const errorInfos = {
+        title: 'Impossible to create entity',
+        consequence: 'Creation aborted'
+    }
+
+    bundle
+        .selectSkeleton( skeleton )
+        .catch( error => exitWithError( errorInfos.title, `Skeleton bundle not found. ${error}`, errorInfos.consequence ) )
+        .then( () => bundle.exists() )
+        .catch( error => exitWithError( errorInfos.title, `${bundle.name} bundle doesn't exists. ${error}`, errorInfos.consequence ) )
+        .then( () => entity.createFile() )
+        .then( () => exitWithSuccess( `Entity ${entity.name} created in bundle ${bundle.name}` ) )
+        .catch( error => exitWithError( errorInfos.title, error, errorInfos.consequence ) )
+
     // data = data.replace( /tableName(\s*):(\s*)('|")\w*('|")/i, `tableName$1:$2$3${tableName}$4` )
+}
+
+/**
+ * confirmEntityName - confirm if entity name transformed correspond to user attempts
+ *
+ * @param {string} name
+ *
+ * @returns {boolean}
+ */
+function confirmEntityName( name ) {
+    const newName = question( `Entity name (default: ${name}): ` ).trim()
+
+    if ( newName.length > 0 ) {
+        return newName
+    }
+
+    return name
+}
+
+/**
+ * confirmEntityFileName - confirm if entity file name transformed correspond to user attempts
+ *
+ * @param {string} fileName
+ *
+ * @returns {boolean}
+ */
+function confirmEntityFileName( fileName ) {
+    const newFileName = question( `Entity file name (default: ${fileName}): ` ).trim()
+
+    if ( newFileName.length > 0 ) {
+        return newFileName
+    }
+
+    return fileName
 }
 
 function askForTable() {
