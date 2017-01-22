@@ -27,10 +27,9 @@ module.exports.handler = argv => {
         consequence: 'Creation aborted'
     }
 
-    skeleton
-        .selectCorrect()
+    bundle
+        .selectSkeleton( skeleton )
         .catch( error => exitWithError( errorInfos.title, `Skeleton bundle not found. ${error}`, errorInfos.consequence ) )
-        .then( () => bundle.defineStructureSkeleton( skeleton ) )
         .then( () => bundle.exists() )
         .then( error => exitWithError( errorInfos.title, `${bundleName} bundle already exists. ${error}`, errorInfos.consequence ) )
         .catch( () => bundle.createRootDirectory() )
