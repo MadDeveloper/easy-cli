@@ -29,9 +29,8 @@ module.exports.handler = argv => {
     const specialColumnType = [ 'increments', 'integer', 'bigInteger', 'text', 'string', 'float', 'decimal' ]
     const pathDatabaseSchema = `${kernel.path.config}/database/schema.js`
 
-
-    const entityName = confirmEntityName( transform.asClassName( argv.name ) )
-    const entityFileName = confirmEntityFileName( transform.asWord( entityName ) + '.js' )
+    const entityName = confirmEntityName( transform.asEntityName( argv.name ) )
+    const entityFileName = confirmEntityFileName( transform.asEntityFileName( entityName ) + '.js' )
     const bundleName = argv.bundle
     const bundle = new Bundle( bundleName, kernel )
     const skeleton = new Skeleton( kernel )
@@ -41,7 +40,7 @@ module.exports.handler = argv => {
         consequence: 'Creation aborted'
     }
 
-    bundle
+    return bundle
         .selectSkeleton( skeleton )
         .catch( error => exitWithError( errorInfos.title, `Skeleton bundle not found. ${error}`, errorInfos.consequence ) )
         .then( () => bundle.exists() )

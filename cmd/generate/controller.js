@@ -22,7 +22,7 @@ module.exports.builder = yargs => {
 module.exports.handler = argv => {
     Console.line()
 
-    const controllerName = confirmControllerName( transform.asClassName( argv.name ) )
+    const controllerName = confirmControllerName( transform.asControllerName( argv.name ) )
     const controllerFileName = confirmControllerFileName( transform.asControllerFileName( controllerName ) )
     const bundleName = argv.bundle
     const bundle = new Bundle( bundleName, kernel )
