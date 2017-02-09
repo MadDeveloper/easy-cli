@@ -3,7 +3,6 @@ const { transform } = require( 'easy/lib/string' )
 const { Console } = require( 'easy/core' )
 const { positiveAnswers, negativeAnswers } = require( '../../lib/answers' )
 const { question } = require( 'readline-sync' )
-const { indexOf } = require( 'lodash' )
 const { Bundle, Skeleton, Repository } = require( '../../lib/bundle' )
 const { exitWithSuccess, exitWithError } = require( '../../lib/exit' )
 const { handler } = require( './entity' )
@@ -94,5 +93,5 @@ function askToCreateEntity() {
 
     const answer = question( 'Do you want associate entity to that repository? (y/n) ' ).trim().toLowerCase()
 
-    return -1 !== indexOf( positiveAnswers, answer ) ? Promise.resolve() : Promise.reject()
+    return positiveAnswers.includes( answer ) ? Promise.resolve() : Promise.reject()
 }

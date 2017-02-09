@@ -1,6 +1,5 @@
 const { kernel, application } = require( `${easy.appRootPath}/src/bootstrap` )
 const { question } = require( 'readline-sync' )
-const { indexOf } = require( 'lodash' )
 const { Console } = require( 'easy/core' )
 const { transform } = require( 'easy/lib/string' )
 const { positiveAnswers, negativeAnswers } = require( '../../lib/answers' )
@@ -67,5 +66,5 @@ function confirmBundleName( name ) {
 function askToActivateBundle() {
     const answerActivateBundle = question( 'Do you want to activate bundle? (y/n) ' ).trim().toLowerCase()
 
-    return -1 !== indexOf( positiveAnswers, answerActivateBundle )
+    return positiveAnswers.includes( answerActivateBundle )
 }

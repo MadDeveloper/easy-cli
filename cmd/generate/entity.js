@@ -5,6 +5,7 @@ const { positiveAnswers, negativeAnswers } = require( '../../lib/answers' )
 const { question } = require( 'readline-sync' )
 const { Bundle, Skeleton, Entity } = require( '../../lib/bundle' )
 const { exitWithSuccess, exitWithError } = require( '../../lib/exit' )
+const { snakeCase, deburr } = require( 'lodash' )
 
 module.exports.command = 'entity <name> [bundle]'
 module.exports.describe = 'Generate new entity with console support'
@@ -89,7 +90,7 @@ function confirmEntityFileName( fileName ) {
 function askForTable() {
     const createAssociatedTable = question( 'Do you want create an associated table into database? (y/n) ' ).trim().toLowerCase()
 
-    if ( indexOf( positiveAnswers, createAssociatedTable ) !== -1 ) {
+    if ( positiveAnswers.includes( createAssociatedTable ) ) {
         /*
          * Table associated requested
          */
@@ -97,7 +98,7 @@ function askForTable() {
         .then( () => {
             askForTableName()
         })
-    } else if ( indexOf( negativeAnswers, createAssociatedTable ) !== -1 ) {
+    } else if ( negativeAnswers.includes( createAssociatedTable ) ) {
         /*
          * No table associated requested
          */
@@ -110,8 +111,8 @@ function askForTable() {
 function askForTableName() {
     Console.line()
 
-    const defaultTableName = `${asSnakeCase( formattedBundleNameDecapitalized )}s`
-    const answerTableName = asSnakeCase( question( `Table name (default: ${defaultTableName}): ` ) )
+    const defaultTableName = `${snakeCase( formattedBundleNameDecapitalized )}s`
+    const answerTableName = snakeCase( question( `Table name (default: ${defaultTableName}): ` ) )
 
     tableName = ( answerTableName.length > 0 ) ? answerTableName : defaultTableName
 
@@ -124,7 +125,7 @@ function askForProperties() {
     /*
      * We ask for properties
      */
-    const columnName = asSnakeCase( question( 'Column name (let empty if the table is complete): ' ) )
+    const columnName = snakeCase( question( 'Column name (let empty if the table is complete): ' ) )
     const propertiesLength = Object.keys( properties ).length
 
     if ( 0 === columnName.length && 0 === propertiesLength ) {
@@ -132,9 +133,9 @@ function askForProperties() {
     } else if ( 0 === columnName.length && propertiesLength > 0 ) {
         createTable()
     } else {
-        const columnType = cleanAccents( question( `Column type: (availables: ${availablesColumnType.join( ', ' )}): ` ).toLowerCase().trim() )
+        const columnType = deburr( question( `Column type: (availables: ${availablesColumnType.join( ', ' )}): ` ).toLowerCase().trim() )
 
-        if ( indexOf( availablesColumnType, columnType ) !== -1 ) {
+        if ( availablesColumnType.includes( columnType ) ) {
             /*
              * Everything is ok, we push new column
              */
@@ -144,7 +145,7 @@ function askForProperties() {
             /*
              * Special property ? Ask for more details
              */
-            if ( indexOf( specialColumnType, columnType ) !== -1 ) {
+            if ( specialColumnType.includes( columnType ) ) {
                 askDetailsForSpecialColumnType( columnType, columnName )
             }
 
@@ -167,12 +168,12 @@ function askDetailsForSpecialColumnType( type, columnName ) {
         case 'increments':
             const anwserDefineAsPrimary = question( 'Define as primary? (y/n) ' ).trim().toLowerCase()
 
-            if ( indexOf( positiveAnswers, anwserDefineAsPrimary ) !== -1 ) {
+            if ( positiveAnswers.includes( anwserDefineAsPrimary ) ) {
                 /*
                  * Define as primary
                  */
                 property.primary = true
-            } else if ( -1 === indexOf( negativeAnswers, anwserDefineAsPrimary ) ) {
+            } else if ( negativeAnswers.includes( anwserDefineAsPrimary ) ) {
                 /*
                  * Not recognized answer
                  */
@@ -187,7 +188,7 @@ function askDetailsForSpecialColumnType( type, columnName ) {
         case 'bigInteger':
             const answerIsAReference = question( 'Define as reference (foreign key)? (y/n) ' ).trim().toLowerCase()
 
-            if ( indexOf( positiveAnswers, answerIsAReference ) !== -1 ) {
+            if ( positiveAnswers.includes( answerIsAReference ) ) {
                 /*
                  * Define as reference
                  */
@@ -195,7 +196,7 @@ function askDetailsForSpecialColumnType( type, columnName ) {
 
                 const answerReference = question( 'Table.ColumnId as reference (exemple: roles.id): ' ).trim().toLowerCase()
 
-                if ( answerReference.indexOf( '.' ) !== -1 && answerReference.match( /^\w+\.\w+$/ ) ) {
+                if ( answerReference.includes( '.' ) && answerReference.match( /^\w+\.\w+$/ ) ) {
                     property.references = answerReference
 
                     const validsOnEventAction = [ 'restrict', 'cascade', 'set null', 'no action' ]
@@ -206,7 +207,7 @@ function askDetailsForSpecialColumnType( type, columnName ) {
                      */
                     const answerOnDelete = question( `On delete action: (${validsOnEventAction.join( ', ' )}, default: ${defaultOnEventAction}) ` ).trim().toLowerCase()
 
-                    if ( indexOf( validsOnEventAction, answerOnDelete ) !== -1 ) {
+                    if ( validsOnEventAction.includes( answerOnDelete ) ) {
                         property.onDelete = answerOnDelete
                     } else {
                         property.onDelete = defaultOnEventAction
@@ -217,7 +218,7 @@ function askDetailsForSpecialColumnType( type, columnName ) {
                      */
                     const answerOnUpdate = question( `On update action: (${validsOnEventAction.join( ', ' )}, default: ${defaultOnEventAction}) ` ).trim().toLowerCase()
 
-                    if ( indexOf( validsOnEventAction, answerOnUpdate ) !== -1 ) {
+                    if ( validsOnEventAction.includes( answerOnUpdate ) ) {
                         property.onUpdate = answerOnUpdate
                     } else {
                         property.onUpdate = defaultOnEventAction
@@ -227,10 +228,12 @@ function askDetailsForSpecialColumnType( type, columnName ) {
                      * Wrong reference
                      */
                     delete property.unsigned
+
                     Console.error({
                         title: "Wrong reference",
                         message: `Reference -> ${answerReference} is not a valid reference.`
                     })
+
                     askDetailsForSpecialColumnType( type, columnName )
                 }
             }
@@ -244,7 +247,7 @@ function askDetailsForSpecialColumnType( type, columnName ) {
             const defaultTextType = 'text'
             const anwserTypeOfText = question( `Which kind of text? ( ${validsTextType.join( ', ' )}, default: ${defaultTextType}) ` ).trim().toLowerCase()
 
-            if ( indexOf( validsTextType, anwserTypeOfText ) !== -1 ) {
+            if ( validsTextType.includes( anwserTypeOfText ) ) {
                 property.fieldtype = anwserTypeOfText
             } else {
                 property.fieldtype = defaultTextType
@@ -311,12 +314,12 @@ function askDetailsForSpecialColumnType( type, columnName ) {
 function askForNullableColumn( columnName ) {
     const answerNullable = question( 'Define as nullable? (y/n) ' ).trim().toLowerCase()
 
-    if ( indexOf( positiveAnswers, answerNullable ) !== -1 ) {
+    if ( positiveAnswers.includes( answerNullable ) ) {
         /*
          * Define as nullable
          */
         properties[ columnName ].nullable = true
-    } else if ( indexOf( negativeAnswers, answerNullable ) !== -1 ) {
+    } else if ( negativeAnswers.includes( answerNullable ) ) {
         /*
          * Not nullable
          */
@@ -332,12 +335,12 @@ function askForNullableColumn( columnName ) {
 function askForUniqueColumn( columnName ) {
     const answerAsUnique = question( 'Define as unique? (y/n) ' ).trim().toLowerCase()
 
-    if ( indexOf( positiveAnswers, answerAsUnique ) !== -1 ) {
+    if ( positiveAnswers.includes( answerAsUnique ) ) {
         /*
          * Define as unique
          */
         properties[ columnName ].unique = true
-    } else if ( indexOf( negativeAnswers, answerAsUnique ) !== -1 ) {
+    } else if ( negativeAnswers.includes( answerAsUnique ) ) {
         /*
          * Not unique
          */
@@ -353,9 +356,7 @@ function askForUniqueColumn( columnName ) {
 function createTable() {
     schemaDatabaseService
         .createTable( tableName, properties )
-        .then( () => {
-            updateSchema()
-        })
+        .then( updateSchema )
         .catch( error => {
             Console.error({
                 title: "Error when creating table",
