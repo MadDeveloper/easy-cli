@@ -22,7 +22,6 @@
     "download-git-repo": "^0.2.1",
     "execsql": "0.0.3",
     "lodash": "^4.17.4",
-    "pad-right": "^0.2.2",
     "readline-sync": "^1.4.5",
     "resolve": "^1.2.0",
     "walk": "^2.3.9",
