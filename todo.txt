@@ -3,6 +3,7 @@
 -----------------------------
 
 - pouvoir charger un skeleton plus enrichi dans les configs, check si un skeleton est dispo dans les configs, si ce n'est pas le cas on utilise celui par défaut dans easy
+- finir la création de la table si cela est une DB gérée par knex
 - rédiger DOC
 
 -----------------------------
