@@ -18,18 +18,18 @@ module.exports.handler = argv => {
 	const sql = `use ${databaseConfig.config.database}`
 	const sqlFile = `${kernel.path.config}/database/${databaseConfig.config.database}.sql`
 
-	// execsql
-	// 	.config( databaseConfig.config )
-	// 	.exec( sql, ( error, results ) => {
-	// 	    if ( error ) {
-	// 	        exitWithError( error )
-	// 	    }
-	// 	})
-	// 	.execFile( sqlFile, ( error, results ) => {
-	// 	    if ( error ) {
-	// 	        exitWithError( err )
-	// 	    } else {
-	// 			exitWithSuccess( 'Database imported, master.' )
-	// 	    }
-	// 	})
+	execsql
+		.config( databaseConfig.config )
+		.exec( sql, ( error, results ) => {
+		    if ( error ) {
+		        exitWithError( error )
+		    }
+		})
+		.execFile( sqlFile, ( error, results ) => {
+		    if ( error ) {
+		        exitWithError( err )
+		    } else {
+				exitWithSuccess( 'Database imported, master.' )
+		    }
+		})
 }

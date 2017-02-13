@@ -47,7 +47,7 @@ module.exports.handler = argv => {
                     exitWithError( 'Error when copying default skeleton in configurations', error )
                 }
 
-                exitWithSuccess( 'Default skeleton imported\n' )
+                exitWithSuccess( 'Default skeleton imported' )
             })
         }
 
@@ -65,7 +65,7 @@ module.exports.handler = argv => {
                             exitWithError( 'Error when removing meta files (LICENSE and README)', error )
                         }
 
-                        exitWithSuccess( 'Skeleton imported\n' )
+                        exitWithSuccess( 'Skeleton imported' )
                     })
                 }
             })
