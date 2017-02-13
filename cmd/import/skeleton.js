@@ -1,10 +1,10 @@
 const { kernel, application } = require( `${easy.appRootPath}/src/bootstrap` )
 const Console = require( 'easy/core/Console' )
-const ConfigLoader = require( 'easy/core/ConfigLoader' )
 const download = require( 'download-git-repo' )
 const { exec } = require( 'child_process' )
 const path = require( 'path' )
 const copydir = require( 'copy-dir' )
+const { exitWithSuccess, exitWithError } = require( '../../lib/exit' )
 
 module.exports.command = 'skeleton [type]'
 module.exports.describe = 'Import skeleton at specified <uri> into ~/src/config (it not <uri> is provided, default is used)'
@@ -22,28 +22,53 @@ module.exports.builder = yargs => {
             alias: [ 'u' ],
             describe: 'Remote git repository url'
         })
+        .option( 'default', {
+            alias: [ 'd' ],
+            describe: 'Default skeleton'
+        })
 }
 module.exports.handler = argv => {
-    console.log( argv )
     const enriched = argv.enriched
-    const url = argv.url
-    const configSkeletonPath = path.resolve( `${kernel.path.config}/skeleton` )
-    const restoreBundleSkeletonPath = path.resolve( `${kernel.path.root}/node_modules/easy/.cache/bundles/skeleton` )
+    let url = argv.url
+    const defaultOption = argv.default
+    const configSkeletonPath = path.resolve( `${kernel.path.config}/bundles/skeleton` )
+    const defaultSkeletonPath = path.resolve( `${kernel.path.root}/node_modules/easy/.cache/skeleton` )
+    const enrichedSkeletonUrl = 'MadDeveloper/easy-bundle-skeleton'
 
     // MadDeveloper/easy-bundle-skeleton.git
-    // exec( `rm -r ${bundleSkeletonPath}`, error => {
-    //     copydir( restoreBundleSkeletonPath, bundleSkeletonPath, error => {
-    //         if ( error ) {
-    //             Console.error({
-    //                 title: `Error when restoring skeleton bundle from ${restoreBundleSkeletonPath}`,
-    //                 message: error,
-    //                 consequence: `Verify if both path are corrects: ${bundleSkeletonPath} - ${restoreBundleSkeletonPath}`,
-    //                 exit: 0
-    //             })
-    //         } else {
-    //             Console.success( 'Skeleton restored.' )
-    //             Console.line()
-    //         }
-    //     })
-    // })
+    exec( `rm -rf ${configSkeletonPath}`, error => {
+        if ( error ) {
+            exitWithError( 'Error when cleaning skeleton directory in config', error )
+        }
+
+        if ( defaultOption ) {
+            copydir( defaultSkeletonPath, configSkeletonPath, error => {
+                if ( error ) {
+                    exitWithError( 'Error when copying default skeleton in configurations', error )
+                }
+
+                exitWithSuccess( 'Default skeleton imported\n' )
+            })
+        }
+
+        if ( enriched || ( 'string' === typeof url && url.length > 0 ) ) {
+            if ( enriched ) {
+                url = enrichedSkeletonUrl
+            }
+
+            download( url, configSkeletonPath, error => {
+                if ( error ) {
+                    exitWithError( `Error when downloading skeleton bundle repository from ${url}`, error )
+                } else {
+                    exec( `rm -rf ${configSkeletonPath}/LICENSE ${configSkeletonPath}/README.md`, error => {
+                        if ( error ) {
+                            exitWithError( 'Error when removing meta files (LICENSE and README)', error )
+                        }
+
+                        exitWithSuccess( 'Skeleton imported\n' )
+                    })
+                }
+            })
+        }
+    })
 }
