@@ -5,7 +5,6 @@ const { positiveAnswers, negativeAnswers } = require( '../../lib/answers' )
 const { question } = require( 'readline-sync' )
 const { Bundle, Skeleton, Repository } = require( '../../lib/bundle' )
 const { exitWithSuccess, exitWithError } = require( '../../lib/exit' )
-const { handler } = require( './entity' )
 
 module.exports.command = 'repository <name> [bundle]'
 module.exports.describe = 'Generate new repository with console support'
@@ -41,17 +40,8 @@ module.exports.handler = argv => {
         .then( () => bundle.exists() )
         .catch( error => exitWithError( errorInfos.title, `${bundle.name} bundle doesn't exists. ${error}`, errorInfos.consequence ) )
         .then( () => repository.createFile() )
+        .then( () => exitWithSuccess( successMessage ) )
         .catch( error => exitWithError( errorInfos.title, error, errorInfos.consequence ) )
-        .then( askToCreateEntity )
-        .catch( () => exitWithSuccess( successMessage ) )
-        .then( () => {
-            Console.line()
-            Console.success( successMessage )
-            Console.line()
-            Console.log( 'Now we gonna create the entity' )
-
-            return handler({ name: transform.asEntityName( repositoryName ), bundle: bundle.name })
-        })
 }
 
 /**
@@ -86,12 +76,4 @@ function confirmRepositoryFileName( fileName ) {
     }
 
     return fileName
-}
-
-function askToCreateEntity() {
-    Console.line()
-
-    const answer = question( 'Do you want associate entity to that repository? (y/n) ' ).trim().toLowerCase()
-
-    return positiveAnswers.includes( answer ) ? Promise.resolve() : Promise.reject()
 }

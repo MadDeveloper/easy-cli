@@ -2,8 +2,9 @@
 ----------|  NOW  |----------
 -----------------------------
 
-- pouvoir charger un skeleton plus enrichi dans les configs, check si un skeleton est dispo dans les configs, si ce n'est pas le cas on utilise celui par défaut dans easy
+- starter avec easy-cli un projet (virer le npm start), voir aussi pour toutes les commandes
 - finir la création de la table si cela est une DB gérée par knex
+- finir la migration db selon un choix de la db
 - rédiger DOC
 
 -----------------------------

@@ -1,9 +1,12 @@
 const { kernel, application } = require( `${easy.appRootPath}/src/bootstrap` )
-const execsql = require( 'execsql' )
-const schema = require( 'src/config/database/schema' )
 const sequence = require( 'when/sequence' )
 const Console = require( 'easy/core/Console' )
 const { indexOf, has, keys, map } = require( 'lodash' )
+const { exitWithSuccess, exitWithError } = require( '../../lib/exit' )
+
+let knex
+let database
+let schema
 
 module.exports.command = 'database'
 module.exports.describe = 'Migrate the database with schema.js file (Warning: it will erase all data in current database tables)'
@@ -13,27 +16,15 @@ module.exports.builder = yargs => {
         .example( 'easy migrate database', 'Migrate database' )
 }
 module.exports.handler = argv => {
-	const database = application.container.get( 'component.database' )
-	const knex = database.instance.knex
-	const titleError = "Error when initializing roles and users"
-	const consequenceError = "Initialization aborted."
+	database = application.container.get( 'component.databasesmanager' ).getEntityManager().database
+	knex = database.instance.knex
+
+	schema = require( 'src/config/database/schema' )
 
     dropTables()
 		.then( createTables )
-		.then( () => {
-			Console.success( "I finished the migration chief!." )
-			process.exit()
-		})
-		.catch( raiseError )
-}
-
-function raiseError( error ) {
-	Console.error({
-		title: titleError,
-		message: error,
-		consequence: consequenceError,
-		exit: 0
-	})
+		.then( () => exitWithSuccess( "I finished the migration chief!." ) )
+		.catch( error => exitWithError( 'Error when migrating database', error ) )
 }
 
 function dropTables() {
@@ -120,7 +111,7 @@ function createTable( tableName, tableSchema ) {
 					column.unsigned()
 				}
 
-				if ( tableSchema[ key ].hasOwnProperty( 'references' ) ) {
+				if ( tableSchema[ key ].hasOwnProperty( ) ) {
 					column.references( tableSchema[ key ].references )
 				}
 

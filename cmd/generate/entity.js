@@ -6,6 +6,7 @@ const { question } = require( 'readline-sync' )
 const { Bundle, Skeleton, Entity } = require( '../../lib/bundle' )
 const { exitWithSuccess, exitWithError } = require( '../../lib/exit' )
 const { snakeCase, deburr } = require( 'lodash' )
+const { handler } = require( './repository' )
 
 module.exports.command = 'entity <name> [bundle]'
 module.exports.describe = 'Generate new entity with console support'
@@ -47,8 +48,17 @@ module.exports.handler = argv => {
         .then( () => bundle.exists() )
         .catch( error => exitWithError( errorInfos.title, `${bundle.name} bundle doesn't exists. ${error}`, errorInfos.consequence ) )
         .then( () => entity.createFile() )
-        .then( () => exitWithSuccess( `Entity ${entity.name} created in bundle ${bundle.name}` ) )
         .catch( error => exitWithError( errorInfos.title, error, errorInfos.consequence ) )
+        .then( askToCreateAssociatedRepository )
+        .catch( () => exitWithSuccess( `Entity ${entity.name} created in bundle ${bundle.name}` ) )
+        .then( () => {
+            Console.line()
+            Console.success( `Entity ${entity.name} created in bundle ${bundle.name}` )
+            Console.line()
+            Console.log( 'Now we gonna create the repository' )
+
+            return handler({ name: transform.asRepositoryName( entityName ), bundle: bundle.name })
+        })
 
     // data = data.replace( /tableName(\s*):(\s*)('|")\w*('|")/i, `tableName$1:$2$3${tableName}$4` )
 }
@@ -85,6 +95,19 @@ function confirmEntityFileName( fileName ) {
     }
 
     return fileName
+}
+
+/**
+ * askToCreateAssociatedRepository - ask if user want create and associated repository to the entity
+ *
+ * @returns
+ */
+function askToCreateAssociatedRepository() {
+    Console.line()
+
+    const answer = question( 'Do you want an associated repository to that entity? (y/n) ' ).trim().toLowerCase()
+
+    return positiveAnswers.includes( answer ) ? Promise.resolve() : Promise.reject()
 }
 
 function askForTable() {
