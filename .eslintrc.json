@@ -4,7 +4,8 @@
         "node": true
     },
     "parserOptions": {
-        "sourceType": "module"
+        "sourceType": "module",
+        "ecmaVersion": 2017
     },
     "rules": {
         "accessor-pairs": "error",
@@ -67,7 +68,7 @@
         "init-declarations": "off",
         "jsx-quotes": "error",
         "key-spacing": "off",
-        "keyword-spacing": "off",
+        "keyword-spacing": ["error", { "before": true, "after": true }],
         "lines-around-comment": "off",
         "max-depth": "error",
         "max-len": "off",

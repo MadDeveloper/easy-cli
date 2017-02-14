@@ -3,7 +3,7 @@ const { transform } = require( 'easy/lib/string' )
 const { Console } = require( 'easy/core' )
 const { positiveAnswers, negativeAnswers } = require( '../../lib/answers' )
 const { question } = require( 'readline-sync' )
-const Service = require( '../../lib/service' )
+const Service = require( '../../lib/Service' )
 const { exitWithSuccess, exitWithError } = require( '../../lib/exit' )
 
 module.exports.command = 'service <name>'

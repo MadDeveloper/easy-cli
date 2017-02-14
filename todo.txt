@@ -2,6 +2,8 @@
 ----------|  NOW  |----------
 -----------------------------
 
+- use async await
+- migrer tous les choix prompt avec Inquirer
 - starter avec easy-cli un projet (virer le npm start), voir aussi pour toutes les commandes
 - finir la création de la table si cela est une DB gérée par knex
 - finir la migration db selon un choix de la db
