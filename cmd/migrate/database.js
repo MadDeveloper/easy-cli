@@ -111,7 +111,7 @@ function createTable( tableName, tableSchema ) {
 					column.unsigned()
 				}
 
-				if ( tableSchema[ key ].hasOwnProperty( ) ) {
+				if ( tableSchema[ key ].hasOwnProperty( 'references' ) ) {
 					column.references( tableSchema[ key ].references )
 				}
 
