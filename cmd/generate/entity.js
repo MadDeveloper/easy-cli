@@ -28,7 +28,7 @@ module.exports.builder = yargs => {
         })
         .demandCommand( 1, 'Please, provide me the name of the entity and everything will be ok.' )
 }
-module.exports.handler = argv => {
+module.exports.handler = async argv => {
     Console.line()
 
     let tableName = ''
@@ -51,24 +51,34 @@ module.exports.handler = argv => {
         consequence: 'Creation aborted'
     }
 
-    return bundle
-        .selectSkeleton( skeleton )
-        .catch( error => exitWithError( errorInfos.title, `Skeleton bundle not found. ${error}`, errorInfos.consequence ) )
-        .then( () => bundle.exists() )
-        .catch( error => exitWithError( errorInfos.title, `${bundle.name} bundle doesn't exists. ${error}`, errorInfos.consequence ) )
-        .then( () => entity.createFile() )
-        .catch( error => exitWithError( errorInfos.title, error, errorInfos.consequence ) )
-        // .then( askForTable )
-        .then( askToCreateAssociatedRepository )
-        .catch( () => exitWithSuccess( `Entity ${entity.name} created in bundle ${bundle.name}` ) )
-        .then( () => {
+    try {
+        await bundle.selectSkeleton( skeleton )
+
+        const exists = await bundle.exists()
+
+        if ( !exists ) {
+            throw new Error( `${bundleName} bundle doesn't exists` )
+        }
+
+        await entity.createFile()
+
+        // askForTable()
+
+        const createAssociatedRepository = askToCreateAssociatedRepository()
+
+        if ( createAssociatedRepository ) {
             Console.line()
             Console.success( `Entity ${entity.name} created in bundle ${bundle.name}` )
             Console.line()
             Console.log( 'Now we gonna create the repository' )
 
-            return handler({ name: transform.asRepositoryName( entityName ), bundle: bundle.name })
-        })
+            handler({ name: transform.asRepositoryName( entityName ), bundle: bundle.name })
+        } else {
+            exitWithSuccess( `Entity ${entity.name} created in bundle ${bundle.name}` )
+        }
+    } catch ( error ) {
+        exitWithError( errorInfos.title, error, errorInfos.consequence )
+    }
 
     // data = data.replace( /tableName(\s*):(\s*)('|")\w*('|")/i, `tableName$1:$2$3${tableName}$4` )
 }
@@ -78,7 +88,7 @@ module.exports.handler = argv => {
  *
  * @param {string} name
  *
- * @returns {boolean}
+ * @returns {string}
  */
 function confirmEntityName( name ) {
     const newName = question( `Entity name (default: ${name}): ` ).trim()
@@ -95,7 +105,7 @@ function confirmEntityName( name ) {
  *
  * @param {string} fileName
  *
- * @returns {boolean}
+ * @returns {string}
  */
 function confirmEntityFileName( fileName ) {
     const newFileName = question( `Entity file name (default: ${fileName}): ` ).trim()
@@ -110,12 +120,12 @@ function confirmEntityFileName( fileName ) {
 /**
  * askToCreateAssociatedRepository - ask if user want create and associated repository to the entity
  *
- * @returns
+ * @returns {boolean}
  */
 function askToCreateAssociatedRepository() {
     Console.line()
 
     const answer = question( 'Do you want an associated repository to that entity? (y/n) ' ).trim().toLowerCase()
 
-    return positiveAnswers.includes( answer ) ? Promise.resolve() : Promise.reject()
+    return positiveAnswers.includes( answer )
 }

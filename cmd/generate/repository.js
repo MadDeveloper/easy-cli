@@ -19,7 +19,7 @@ module.exports.builder = yargs => {
         })
         .demandCommand( 1, 'Provide me the name of the repository and you won\'t have problems.' )
 }
-module.exports.handler = argv => {
+module.exports.handler = async argv => {
     Console.line()
 
     const repositoryName = confirmRepositoryName( transform.asRepositoryName( argv.name ) )
@@ -32,16 +32,21 @@ module.exports.handler = argv => {
         title: 'Impossible to create repository',
         consequence: 'Creation aborted'
     }
-    const successMessage = `Repository ${repository.name} created in bundle ${bundle.name}`
 
-    bundle
-        .selectSkeleton( skeleton )
-        .catch( error => exitWithError( errorInfos.title, `Skeleton bundle not found. ${error}`, errorInfos.consequence ) )
-        .then( () => bundle.exists() )
-        .catch( error => exitWithError( errorInfos.title, `${bundle.name} bundle doesn't exists. ${error}`, errorInfos.consequence ) )
-        .then( () => repository.createFile() )
-        .then( () => exitWithSuccess( successMessage ) )
-        .catch( error => exitWithError( errorInfos.title, error, errorInfos.consequence ) )
+    try {
+        await bundle.selectSkeleton( skeleton )
+
+        const exists = await bundle.exists()
+
+        if ( !exists ) {
+            throw new Error( `${bundleName} bundle doesn't exists` )
+        }
+
+        await repository.createFile()
+        exitWithSuccess( `Repository ${repository.name} created in bundle ${bundle.name}` )
+    } catch ( error ) {
+        exitWithError( errorInfos.title, error, errorInfos.consequence )
+    }
 }
 
 /**
@@ -49,7 +54,7 @@ module.exports.handler = argv => {
  *
  * @param {string} name
  *
- * @returns {boolean}
+ * @returns {string}
  */
 function confirmRepositoryName( name ) {
     const newName = question( `Repository name (default: ${name}): ` ).trim()
@@ -66,7 +71,7 @@ function confirmRepositoryName( name ) {
  *
  * @param {string} fileName
  *
- * @returns {boolean}
+ * @returns {string}
  */
 function confirmRepositoryFileName( fileName ) {
     const newFileName = question( `Repository file name (default: ${fileName}): ` ).trim()

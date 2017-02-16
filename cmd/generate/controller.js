@@ -19,7 +19,7 @@ module.exports.builder = yargs => {
         })
         .demandCommand( 1, 'I need the name of the controller you want to create.' )
 }
-module.exports.handler = argv => {
+module.exports.handler = async argv => {
     Console.line()
 
     const controllerName = confirmControllerName( transform.asControllerName( argv.name ) )
@@ -33,14 +33,20 @@ module.exports.handler = argv => {
         consequence: 'Creation aborted'
     }
 
-    bundle
-        .selectSkeleton( skeleton )
-        .catch( error => exitWithError( errorInfos.title, `Skeleton bundle not found. ${error}`, errorInfos.consequence ) )
-        .then( () => bundle.exists() )
-        .catch( error => exitWithError( errorInfos.title, `${bundle.name} bundle doesn't exists. ${error}`, errorInfos.consequence ) )
-        .then( () => controller.createFile() )
-        .then( () => exitWithSuccess( `Controller ${controller.name} created in bundle ${bundle.name}` ) )
-        .catch( error => exitWithError( errorInfos.title, error, errorInfos.consequence ) )
+    try {
+        await bundle.selectSkeleton( skeleton )
+
+        const exists = await bundle.exists()
+
+        if ( !exists ) {
+            throw new Error( `${bundleName} bundle doesn't exists` )
+        }
+
+        await controller.createFile()
+        exitWithSuccess( `Controller ${controller.name} created in bundle ${bundle.name}` )
+    } catch ( error ) {
+        exitWithError( errorInfos.title, error, errorInfos.consequence )
+    }
 }
 
 /**
@@ -48,7 +54,7 @@ module.exports.handler = argv => {
  *
  * @param {string} name
  *
- * @returns {boolean}
+ * @returns {string}
  */
 function confirmControllerName( name ) {
     const newName = question( `Controller name (default: ${name}): ` ).trim()
@@ -65,7 +71,7 @@ function confirmControllerName( name ) {
  *
  * @param {string} fileName
  *
- * @returns {boolean}
+ * @returns {string}
  */
 function confirmControllerFileName( fileName ) {
     const newFileName = question( `Controller file name (default: ${fileName}): ` ).trim()

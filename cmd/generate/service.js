@@ -14,7 +14,7 @@ module.exports.builder = yargs => {
         .example( 'easy generate service myService', 'Generate service myService' )
         .demandCommand( 1, 'Please, provide me the name of the service and everything will be ok.' )
 }
-module.exports.handler = argv => {
+module.exports.handler = async argv => {
     Console.line()
 
     const name = argv.name
@@ -27,12 +27,20 @@ module.exports.handler = argv => {
         consequence: 'Creation aborted'
     }
 
-    service
-        .fileExists()
-        .then( () => exitWithError( errorInfos.title, 'Service already exists', errorInfos.consequence ) )
-        .catch( () => service.createFile() )
-        .then( () => exitWithSuccess( 'Service created.\nIf you want use it, think to enable it into services configurations file.' ) )
-        .catch( error => exitWithError( errorInfos.title, `Error when creating service file.\n${error}`, errorInfos.consequence ) )
+    const exists = await service.fileExists()
+
+    if ( exists ) {
+        exitWithError( errorInfos.title, 'Service already exists', errorInfos.consequence )
+
+        return
+    }
+
+    try {
+        await service.createFile()
+        exitWithSuccess( 'Service created.\nIf you want use it, think to enable it into services configurations file.' )
+    } catch ( error ) {
+        exitWithError( errorInfos.title, error, errorInfos.consequence )
+    }
 }
 
 /**
@@ -40,7 +48,7 @@ module.exports.handler = argv => {
  *
  * @param {string} name
  *
- * @returns {boolean}
+ * @returns {string}
  */
 function confirmServiceName( name ) {
     const newName = question( `Service name (default: ${name}): ` ).trim()
@@ -57,7 +65,7 @@ function confirmServiceName( name ) {
  *
  * @param {string} fileName
  *
- * @returns {boolean}
+ * @returns {string}
  */
 function confirmServiceFileName( fileName ) {
     const newFileName = question( `Service file name (default: ${fileName}): ` ).trim()

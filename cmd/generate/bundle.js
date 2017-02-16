@@ -14,31 +14,38 @@ module.exports.builder = yargs => {
         .example( 'easy generate bundle test', 'Generate bundle Test from skeleton' )
         .demandCommand( 1, 'I need you provide the name of the new bundle.' )
 }
-module.exports.handler = argv => {
+module.exports.handler = async argv => {
     Console.line()
 
     const bundleName = confirmBundleName( transform.asBundleName( argv.name ) )
     const bundle = new Bundle( bundleName, kernel )
     const skeleton = new Skeleton( kernel )
-
     const errorInfos = {
         title: 'Impossible to create bundle',
         consequence: 'Creation aborted'
     }
 
-    bundle
-        .selectSkeleton( skeleton )
-        .catch( error => exitWithError( errorInfos.title, `Skeleton bundle not found. ${error}`, errorInfos.consequence ) )
-        .then( () => bundle.exists() )
-        .then( error => exitWithError( errorInfos.title, `${bundleName} bundle already exists. ${error}`, errorInfos.consequence ) )
-        .catch( () => bundle.createRootDirectory() )
-        .catch( error => exitWithError( errorInfos.title, `Error when trying to create bundle directory. ${error}`, errorInfos.consequence ) )
-        .then( askToActivateBundle )
-        .then( activate => activate ? bundle.activate() : Promise.resolve() )
-        .catch( error => exitWithError( errorInfos.title, `Error when activating bundle. ${error}`, errorInfos.consequence ) )
-        .then( () => bundle.createStucture() )
-        .then( () => exitWithSuccess( `Bundle ${bundle.name} created.` ) )
-        .catch( error => exitWithError( errorInfos.title, `Error when creating bundle structure. ${error}`, errorInfos.consequence ) )
+    try {
+        await bundle.selectSkeleton( skeleton )
+        const exists = await bundle.exists()
+
+        if ( exists ) {
+            throw new Error( `${bundleName} bundle already exists` )
+        }
+
+        await bundle.createRootDirectory()
+
+        const activate = askToActivateBundle()
+
+        if ( activate ) {
+            await bundle.activate()
+        }
+
+        await bundle.createStucture()
+        exitWithSuccess( `Bundle ${bundle.name} created.` )
+    } catch ( error ) {
+        exitWithError( errorInfos.title, error, errorInfos.consequence )
+    }
 }
 
 /**
@@ -46,7 +53,7 @@ module.exports.handler = argv => {
  *
  * @param {string} name
  *
- * @returns {boolean}
+ * @returns {string}
  */
 function confirmBundleName( name ) {
     const newName = question( `Bundle name (default: ${name}): ` ).trim()
