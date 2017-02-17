@@ -1,9 +1,7 @@
 const { kernel, application } = require( `${easy.appRootPath}/src/bootstrap` )
 const Console = require( 'easy/core/Console' )
-const download = require( 'download-git-repo' )
-const { exec } = require( 'child_process' )
 const path = require( 'path' )
-const copydir = require( 'copy-dir' )
+const { Skeleton } = require( '../../lib/bundle' )
 const { exitWithSuccess, exitWithError } = require( '../../lib/exit' )
 
 module.exports.command = 'skeleton [type]'
@@ -27,48 +25,28 @@ module.exports.builder = yargs => {
             describe: 'Default skeleton'
         })
 }
-module.exports.handler = argv => {
-    const enriched = argv.enriched
+module.exports.handler = async argv => {
     let url = argv.url
+    const enriched = argv.enriched
     const defaultOption = argv.default
-    const configSkeletonPath = path.resolve( `${kernel.path.config}/bundles/skeleton` )
-    const defaultSkeletonPath = path.resolve( `${kernel.path.root}/node_modules/easy/.cache/skeleton` )
     const enrichedSkeletonUrl = 'MadDeveloper/easy-bundle-skeleton'
+    const skeleton = new Skeleton( kernel )
 
-    // MadDeveloper/easy-bundle-skeleton.git
-    exec( `rm -rf ${configSkeletonPath}`, error => {
-        if ( error ) {
-            exitWithError( 'Error when cleaning skeleton directory in config', error )
-        }
+    try {
+        await skeleton.removeInConfigurations()
 
         if ( defaultOption ) {
-            copydir( defaultSkeletonPath, configSkeletonPath, error => {
-                if ( error ) {
-                    exitWithError( 'Error when copying default skeleton in configurations', error )
-                }
-
-                exitWithSuccess( 'Default skeleton imported' )
-            })
-        }
-
-        if ( enriched || ( 'string' === typeof url && url.length > 0 ) ) {
+            await skeleton.importDefault()
+        } else if ( enriched || ( 'string' === typeof url && url.length > 0 ) ) {
             if ( enriched ) {
                 url = enrichedSkeletonUrl
             }
 
-            download( url, configSkeletonPath, error => {
-                if ( error ) {
-                    exitWithError( `Error when downloading skeleton bundle repository from ${url}`, error )
-                } else {
-                    exec( `rm -rf ${configSkeletonPath}/LICENSE ${configSkeletonPath}/README.md`, error => {
-                        if ( error ) {
-                            exitWithError( 'Error when removing meta files (LICENSE and README)', error )
-                        }
-
-                        exitWithSuccess( 'Skeleton imported' )
-                    })
-                }
-            })
+            await skeleton.downloadFromRepository( url )
         }
-    })
+
+        exitWithSuccess( 'Skeleton imported' )
+    } catch ( error ) {
+        exitWithError( error )
+    }
 }
