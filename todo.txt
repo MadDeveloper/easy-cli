@@ -2,6 +2,7 @@
 ----------|  NOW  |----------
 -----------------------------
 
+- quand on genere un composant, penser a verifier que tous les dossiers jusqu'au path existent, sinon les creer
 - dans Skeleton.js, remplacer le rm -rm par du node
 - migrer tous les choix prompt avec Inquirer
 - starter avec easy-cli un projet (virer le npm start), voir aussi pour toutes les commandes
