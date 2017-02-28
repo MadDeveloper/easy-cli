@@ -1,6 +1,6 @@
-const { kernel, application } = require( `${easy.appRootPath}/src/bootstrap` )
-const { transform } = require( 'easy/lib/string' )
-const { Console } = require( 'easy/core' )
+const { application } = require( `${easy.appRootPath}/src/bootstrap` )
+const { transform } = require( `${easy.easyPath}/lib/string` )
+const { Console } = require( `${easy.easyPath}/core` )
 const { positiveAnswers, negativeAnswers } = require( '../../lib/answers' )
 const { question } = require( 'readline-sync' )
 const { Bundle, Skeleton, Entity } = require( '../../lib/bundle' )
@@ -11,6 +11,7 @@ const TableBuilder = require( '../../lib/database/TableBuilder' )
 const SchemaBuilder = require( '../../lib/database/SchemaBuilder' )
 const inquirer = require( 'inquirer' )
 const prompt = inquirer.createPromptModule()
+const kernel = application.kernel
 
 let container = application.container
 let databasesManager = container.get( 'component.databasesmanager' )

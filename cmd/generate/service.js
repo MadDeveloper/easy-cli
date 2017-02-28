@@ -1,10 +1,11 @@
-const { kernel, application } = require( `${easy.appRootPath}/src/bootstrap` )
-const { transform } = require( 'easy/lib/string' )
-const { Console } = require( 'easy/core' )
+const { application } = require( `${easy.appRootPath}/src/bootstrap` )
+const { transform } = require( `${easy.easyPath}/lib/string` )
+const { Console } = require( `${easy.easyPath}/core` )
 const { positiveAnswers, negativeAnswers } = require( '../../lib/answers' )
 const { question } = require( 'readline-sync' )
 const Service = require( '../../lib/Service' )
 const { exitWithSuccess, exitWithError } = require( '../../lib/exit' )
+const kernel = application.kernel
 
 module.exports.command = 'service <name>'
 module.exports.describe = 'Generate new service with console support'

@@ -8,7 +8,8 @@
 */
 
 const Jasmine = require( 'jasmine' )
-const { kernel, application } = require( `${easy.appRootPath}/src/bootstrap` )
+const { application } = require( `${easy.appRootPath}/src/bootstrap` )
+const kernel = application.kernel
 
 module.exports.command = 'test'
 module.exports.describe = 'Start unit tests'

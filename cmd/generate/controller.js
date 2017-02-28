@@ -1,10 +1,11 @@
-const { kernel, application } = require( `${easy.appRootPath}/src/bootstrap` )
-const { transform } = require( 'easy/lib/string' )
-const { Console } = require( 'easy/core' )
+const { application } = require( `${easy.appRootPath}/src/bootstrap` )
+const { transform } = require( `${easy.easyPath}/lib/string` )
+const { Console } = require( `${easy.easyPath}/core` )
 const { positiveAnswers, negativeAnswers } = require( '../../lib/answers' )
 const { question } = require( 'readline-sync' )
 const { Bundle, Skeleton, Controller } = require( '../../lib/bundle' )
 const { exitWithSuccess, exitWithError } = require( '../../lib/exit' )
+const kernel = application.kernel
 
 module.exports.command = 'controller <name> [bundle]'
 module.exports.describe = 'Generate new controller with console support'

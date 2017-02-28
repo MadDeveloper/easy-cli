@@ -1,8 +1,9 @@
-const { kernel, application } = require( `${easy.appRootPath}/src/bootstrap` )
-const Console = require( 'easy/core/Console' )
+const { application } = require( `${easy.appRootPath}/src/bootstrap` )
+const { Console } = require( `${easy.easyPath}/core` )
 const path = require( 'path' )
 const { Skeleton } = require( '../../lib/bundle' )
 const { exitWithSuccess, exitWithError } = require( '../../lib/exit' )
+const kernel = application.kernel
 
 module.exports.command = 'skeleton [type]'
 module.exports.describe = 'Import skeleton at specified <uri> into ~/src/config (it not <uri> is provided, default is used)'

@@ -1,8 +1,9 @@
-const { kernel, application } = require( `${easy.appRootPath}/src/bootstrap` )
+const { application } = require( `${easy.appRootPath}/src/bootstrap` )
 const sequence = require( 'when/sequence' )
-const Console = require( 'easy/core/Console' )
+const { Console } = require( `${easy.easyPath}/core` )
 const { has, keys, map } = require( 'lodash' )
 const { exitWithSuccess, exitWithError } = require( '../../lib/exit' )
+const kernel = application.kernel
 
 let knex
 let database
