@@ -21,7 +21,6 @@
     "copy-dir": "^0.3.0",
     "download-git-repo": "^0.2.1",
     "execsql": "0.0.3",
-    "harmonize": "^2.0.0",
     "inquirer": "^3.0.1",
     "jasmine": "^2.5.3",
     "lodash": "^4.17.4",
