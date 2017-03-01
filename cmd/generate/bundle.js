@@ -1,4 +1,4 @@
-const { application } = require( `${easy.appRootPath}/src/bootstrap` )
+const { application } = require( `${easy.easyPath}/bootstrap` )
 const { question } = require( 'readline-sync' )
 const { Console } = require( `${easy.easyPath}/core` )
 const { transform } = require( `${easy.easyPath}/lib/string` )

@@ -1,4 +1,4 @@
-const { application } = require( `${easy.appRootPath}/src/bootstrap` )
+const { application } = require( `${easy.easyPath}/bootstrap` )
 const { transform } = require( `${easy.easyPath}/lib/string` )
 const { Console } = require( `${easy.easyPath}/core` )
 const { positiveAnswers, negativeAnswers } = require( '../../lib/answers' )

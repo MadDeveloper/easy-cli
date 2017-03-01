@@ -1,4 +1,4 @@
-const { application } = require( `${easy.appRootPath}/src/bootstrap` )
+const { application } = require( `${easy.easyPath}/bootstrap` )
 const { Console } = require( `${easy.easyPath}/core` )
 const path = require( 'path' )
 const { Skeleton } = require( '../../lib/bundle' )
