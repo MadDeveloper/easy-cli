@@ -1,10 +1,9 @@
 const { application } = require( `${easy.easyPath}/bootstrap` )
 const { question } = require( 'readline-sync' )
-const { Console } = require( `${easy.easyPath}/core` )
 const { transform } = require( `${easy.easyPath}/lib/string` )
 const { positiveAnswers, negativeAnswers } = require( '../../lib/answers' )
 const { Bundle, Skeleton } = require( '../../lib/bundle' )
-const { exitWithSuccess, exitWithError } = require( '../../lib/exit' )
+const { displaySuccess, displayError } = require( '../../lib/display' )
 const kernel = application.kernel
 
 module.exports.command = 'bundle <name>'
@@ -16,8 +15,6 @@ module.exports.builder = yargs => {
         .demandCommand( 1, 'I need you provide the name of the new bundle.' )
 }
 module.exports.handler = async argv => {
-    Console.line()
-
     const bundleName = confirmBundleName( transform.asBundleName( argv.name ) )
     const bundle = new Bundle( bundleName, kernel )
     const skeleton = new Skeleton( kernel )
@@ -43,9 +40,9 @@ module.exports.handler = async argv => {
         }
 
         await bundle.createStucture()
-        exitWithSuccess( `Bundle ${bundle.name} created.` )
+        displaySuccess( `Bundle ${bundle.name} created.` )
     } catch ( error ) {
-        exitWithError( errorInfos.title, error, errorInfos.consequence )
+        displayError( errorInfos.title, error, errorInfos.consequence )
     }
 }
 

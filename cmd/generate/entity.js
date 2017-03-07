@@ -1,10 +1,9 @@
 const { application } = require( `${easy.easyPath}/bootstrap` )
 const { transform } = require( `${easy.easyPath}/lib/string` )
-const { Console } = require( `${easy.easyPath}/core` )
 const { positiveAnswers, negativeAnswers } = require( '../../lib/answers' )
 const { question } = require( 'readline-sync' )
 const { Bundle, Skeleton, Entity } = require( '../../lib/bundle' )
-const { exitWithSuccess, exitWithError } = require( '../../lib/exit' )
+const { displaySuccess, displayError } = require( '../../lib/display' )
 const { snakeCase, deburr } = require( 'lodash' )
 const { handler } = require( './repository' )
 const TableBuilder = require( '../../lib/database/TableBuilder' )
@@ -30,8 +29,6 @@ module.exports.builder = yargs => {
         .demandCommand( 1, 'Please, provide me the name of the entity and everything will be ok.' )
 }
 module.exports.handler = async argv => {
-    Console.line()
-
     let tableName = ''
     let properties = {}
 
@@ -67,18 +64,14 @@ module.exports.handler = async argv => {
 
         const createAssociatedRepository = askToCreateAssociatedRepository()
 
-        if ( createAssociatedRepository ) {
-            Console.line()
-            Console.success( `Entity ${entity.name} created in bundle ${bundle.name}` )
-            Console.line()
-            Console.log( 'Now we gonna create the repository' )
+        displaySuccess( `\nEntity ${entity.name} created in bundle ${bundle.name}\n` )
 
+        if ( createAssociatedRepository ) {
+            displaySuccess( 'Now we gonna create the repository\n' )
             handler({ name: transform.asRepositoryName( entityName ), bundle: bundle.name })
-        } else {
-            exitWithSuccess( `Entity ${entity.name} created in bundle ${bundle.name}` )
         }
     } catch ( error ) {
-        exitWithError( errorInfos.title, error, errorInfos.consequence )
+        displayError( errorInfos.title, error, errorInfos.consequence )
     }
 
     // data = data.replace( /tableName(\s*):(\s*)('|")\w*('|")/i, `tableName$1:$2$3${tableName}$4` )
@@ -124,8 +117,6 @@ function confirmEntityFileName( fileName ) {
  * @returns {boolean}
  */
 function askToCreateAssociatedRepository() {
-    Console.line()
-
     const answer = question( 'Do you want an associated repository to that entity? (y/n) ' ).trim().toLowerCase()
 
     return positiveAnswers.includes( answer )

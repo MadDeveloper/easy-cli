@@ -1,8 +1,7 @@
 const { application } = require( `${easy.easyPath}/bootstrap` )
-const { Console } = require( `${easy.easyPath}/core` )
 const path = require( 'path' )
 const { Skeleton } = require( '../../lib/bundle' )
-const { exitWithSuccess, exitWithError } = require( '../../lib/exit' )
+const { displaySuccess, displayError } = require( '../../lib/display' )
 const kernel = application.kernel
 
 module.exports.command = 'skeleton [type]'
@@ -46,8 +45,8 @@ module.exports.handler = async argv => {
             await skeleton.downloadFromRepository( url )
         }
 
-        exitWithSuccess( 'Skeleton imported' )
+        displaySuccess( 'Skeleton imported' )
     } catch ( error ) {
-        exitWithError( error )
+        displayError( error )
     }
 }

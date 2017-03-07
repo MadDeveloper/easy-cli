@@ -1,8 +1,7 @@
 const { application } = require( `${easy.easyPath}/bootstrap` )
 const sequence = require( 'when/sequence' )
-const { Console } = require( `${easy.easyPath}/core` )
 const { has, keys, map } = require( 'lodash' )
-const { exitWithSuccess, exitWithError } = require( '../../lib/exit' )
+const { displaySuccess, displayError } = require( '../../lib/display' )
 const kernel = application.kernel
 
 let knex
@@ -24,8 +23,8 @@ module.exports.handler = argv => {
 
     dropTables()
 		.then( createTables )
-		.then( () => exitWithSuccess( "I finished the migration chief!." ) )
-		.catch( error => exitWithError( 'Error when migrating database', error ) )
+		.then( () => displaySuccess( "I finished the migration chief!." ) )
+		.catch( error => displayError( 'Error when migrating database', error ) )
 }
 
 function dropTables() {

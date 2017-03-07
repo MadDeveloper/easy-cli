@@ -2,19 +2,23 @@
 const resolve = require( 'resolve' )
 const path = require( 'path' )
 const yargs = require( 'yargs' )
+const { intersection } = require( 'lodash' )
+const commandsWithoutEasyLocalization = [ 'new' ]
 
 resolve( 'easy', { basedir: process.cwd() }, ( error, easyPath ) => {
-    if ( null !== error ) {
-        console.error( "\nImpossible to find locally easy framework, please install it with npm install easy\n" )
-        return
-    }
+    if ( 0 === intersection( process.argv, commandsWithoutEasyLocalization ).length ) {
+        if ( null !== error ) {
+            console.error( "\nImpossible to find locally easy framework, please install it with the command: npm install --save easy\n" )
+            return
+        }
 
-    /*
-     * Expose root project path
-     */
-    global.easy = global.easy || {}
-    global.easy.easyPath = path.dirname( easyPath )
-    global.easy.appRootPath = path.resolve( `${easy.easyPath}/../../` )
+        /*
+        * Expose easy and root project paths
+        */
+        global.easy = global.easy || {}
+        global.easy.easyPath = path.dirname( easyPath )
+        global.easy.appRootPath = path.resolve( `${easy.easyPath}/../../` )
+    }
 
     yargs
         .usage( 'Usage: easy <command>' )

@@ -8,12 +8,12 @@
 */
 
 const Jasmine = require( 'jasmine' )
-const { application } = require( `${easy.easyPath}/bootstrap` )
-const kernel = application.kernel
 
 module.exports.command = 'test'
 module.exports.describe = 'Start unit tests'
 module.exports.handler = argv => {
+    const { application } = require( `${easy.easyPath}/bootstrap` )
+    const kernel = application.kernel
     const jasmine = new Jasmine()
 
     global.easy.application = application

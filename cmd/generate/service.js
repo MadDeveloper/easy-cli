@@ -1,10 +1,9 @@
 const { application } = require( `${easy.easyPath}/bootstrap` )
 const { transform } = require( `${easy.easyPath}/lib/string` )
-const { Console } = require( `${easy.easyPath}/core` )
 const { positiveAnswers, negativeAnswers } = require( '../../lib/answers' )
 const { question } = require( 'readline-sync' )
 const Service = require( '../../lib/Service' )
-const { exitWithSuccess, exitWithError } = require( '../../lib/exit' )
+const { displaySuccess, displayError } = require( '../../lib/display' )
 const kernel = application.kernel
 
 module.exports.command = 'service <name>'
@@ -16,8 +15,6 @@ module.exports.builder = yargs => {
         .demandCommand( 1, 'Please, provide me the name of the service and everything will be ok.' )
 }
 module.exports.handler = async argv => {
-    Console.line()
-
     const name = argv.name
     const serviceName = confirmServiceName( transform.asServiceName( name ) )
     const serviceFileName = confirmServiceFileName( transform.asServiceFileName( name ) )
@@ -31,16 +28,16 @@ module.exports.handler = async argv => {
     const exists = await service.fileExists()
 
     if ( exists ) {
-        exitWithError( errorInfos.title, 'Service already exists', errorInfos.consequence )
+        displayError( errorInfos.title, 'Service already exists', errorInfos.consequence )
 
         return
     }
 
     try {
         await service.createFile()
-        exitWithSuccess( 'Service created.\nIf you want use it, think to enable it into services configurations file.' )
+        displaySuccess( 'Service created.\nIf you want use it, think to enable it into services configurations file.' )
     } catch ( error ) {
-        exitWithError( errorInfos.title, error, errorInfos.consequence )
+        displayError( errorInfos.title, error, errorInfos.consequence )
     }
 }
 

@@ -1,10 +1,9 @@
 const { application } = require( `${easy.easyPath}/bootstrap` )
 const { transform } = require( `${easy.easyPath}/lib/string` )
-const { Console } = require( `${easy.easyPath}/core` )
 const { positiveAnswers, negativeAnswers } = require( '../../lib/answers' )
 const { question } = require( 'readline-sync' )
 const { Bundle, Skeleton, Controller } = require( '../../lib/bundle' )
-const { exitWithSuccess, exitWithError } = require( '../../lib/exit' )
+const { displaySuccess, displayError } = require( '../../lib/display' )
 const kernel = application.kernel
 
 module.exports.command = 'controller <name> [bundle]'
@@ -21,8 +20,6 @@ module.exports.builder = yargs => {
         .demandCommand( 1, 'I need the name of the controller you want to create.' )
 }
 module.exports.handler = async argv => {
-    Console.line()
-
     const controllerName = confirmControllerName( transform.asControllerName( argv.name ) )
     const controllerFileName = confirmControllerFileName( transform.asControllerFileName( controllerName ) )
     const bundleName = argv.bundle
@@ -44,9 +41,9 @@ module.exports.handler = async argv => {
         }
 
         await controller.createFile()
-        exitWithSuccess( `Controller ${controller.name} created in bundle ${bundle.name}` )
+        displaySuccess( `Controller ${controller.name} created in bundle ${bundle.name}` )
     } catch ( error ) {
-        exitWithError( errorInfos.title, error, errorInfos.consequence )
+        displayError( errorInfos.title, error, errorInfos.consequence )
     }
 }
 

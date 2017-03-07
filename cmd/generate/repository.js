@@ -1,10 +1,9 @@
 const { application } = require( `${easy.easyPath}/bootstrap` )
 const { transform } = require( `${easy.easyPath}/lib/string` )
-const { Console } = require( `${easy.easyPath}/core` )
 const { positiveAnswers, negativeAnswers } = require( '../../lib/answers' )
 const { question } = require( 'readline-sync' )
 const { Bundle, Skeleton, Repository } = require( '../../lib/bundle' )
-const { exitWithSuccess, exitWithError } = require( '../../lib/exit' )
+const { displaySuccess, displayError } = require( '../../lib/display' )
 const kernel = application.kernel
 
 module.exports.command = 'repository <name> [bundle]'
@@ -21,8 +20,6 @@ module.exports.builder = yargs => {
         .demandCommand( 1, 'Provide me the name of the repository and you won\'t have problems.' )
 }
 module.exports.handler = async argv => {
-    Console.line()
-
     const repositoryName = confirmRepositoryName( transform.asRepositoryName( argv.name ) )
     const repositoryFileName = confirmRepositoryFileName( transform.asRepositoryFileName( repositoryName ) )
     const bundleName = argv.bundle
@@ -44,9 +41,9 @@ module.exports.handler = async argv => {
         }
 
         await repository.createFile()
-        exitWithSuccess( `Repository ${repository.name} created in bundle ${bundle.name}` )
+        displaySuccess( `Repository ${repository.name} created in bundle ${bundle.name}` )
     } catch ( error ) {
-        exitWithError( errorInfos.title, error, errorInfos.consequence )
+        displayError( errorInfos.title, error, errorInfos.consequence )
     }
 }
 
