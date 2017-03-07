@@ -14,7 +14,7 @@ const readline = require( 'readline' )
 module.exports.command = 'start'
 module.exports.describe = 'Start application'
 module.exports.handler = argv => {
-    let applicationProcess = spawn( 'node', [ 'node_modules/easy/server.js' ], { stdio: 'inherit' })
+    let applicationProcess = spawn( 'node', [ `${easy.easyPath}/server.js` ], { stdio: 'inherit' })
     const watcher = chokidar.watch( `${easy.appRootPath}/src`, { persistent: true })
     const rl = readline.createInterface({
         input: process.stdin,
