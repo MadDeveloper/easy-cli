@@ -15,6 +15,7 @@ module.exports.command = 'start'
 module.exports.describe = 'Start application'
 module.exports.handler = argv => {
     let applicationProcess = spawn( 'node', [ `${easy.easyPath}/server.js` ], { stdio: 'inherit' })
+    let applicationStarted = false
     const watcher = chokidar.watch( `${easy.appRootPath}/src`, { persistent: true })
     const rl = readline.createInterface({
         input: process.stdin,
@@ -46,14 +47,18 @@ module.exports.handler = argv => {
             console.log( '\nStarting the application...\n' )
             applicationProcess = startApplication()
         } else if ( exitCommand.includes( line ) ) {
-            console.log( '\nStopping the application...' )
             process.emit( 'SIGINT' )
         }
     })
     rl.on( 'SIGINT', () => process.emit( 'SIGINT' ) )
 
     process.on( 'SIGINT', () => {
-        stopApplication( applicationProcess )
+        if ( applicationStarted ) {
+            console.log( '\nStopping the application...' )
+            stopApplication( applicationProcess )
+            console.log( 'Application is stopped\n' )
+        }
+
         console.log( 'Exiting easy cli...' )
         process.exit()
     })
