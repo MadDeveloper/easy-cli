@@ -15,7 +15,7 @@ module.exports.command = 'start'
 module.exports.describe = 'Start application'
 module.exports.handler = argv => {
     let applicationProcess = spawn( 'node', [ `${easy.easyPath}/server.js` ], { stdio: 'inherit' })
-    let applicationStarted = false
+    let applicationStarted = true
     const watcher = chokidar.watch( `${easy.appRootPath}/src`, { persistent: true })
     const rl = readline.createInterface({
         input: process.stdin,
@@ -36,15 +36,13 @@ module.exports.handler = argv => {
 
         line = line.trim().toLowerCase()
 
+        console.log( '' )
+
         if ( restartCommands.includes( line ) ) {
-            console.log( '\nRestarting the application...\n' )
             applicationProcess = restartApplication( applicationProcess )
         } else if ( stopCommands.includes( line ) ) {
-            console.log( '\nStopping the application...' )
             stopApplication( applicationProcess )
-            console.log( 'Application is stopped\n' )
         } else if ( startCommand.includes( line ) ) {
-            console.log( '\nStarting the application...\n' )
             applicationProcess = startApplication()
         } else if ( exitCommand.includes( line ) ) {
             process.emit( 'SIGINT' )
@@ -54,9 +52,7 @@ module.exports.handler = argv => {
 
     process.on( 'SIGINT', () => {
         if ( applicationStarted ) {
-            console.log( '\nStopping the application...' )
             stopApplication( applicationProcess )
-            console.log( 'Application is stopped\n' )
         }
 
         console.log( 'Exiting easy cli...' )
@@ -82,7 +78,9 @@ function restartApplication( applicationProcess ) {
  * @param {ChildProcess} applicationProcess
  */
 function stopApplication( applicationProcess ) {
+    console.log( 'Stopping the application...' )
     applicationProcess.kill()
+    console.log( 'Application stopped\n' )
 }
 
 /**
@@ -91,5 +89,7 @@ function stopApplication( applicationProcess ) {
  * @returns {ChildProcess}
  */
 function startApplication() {
+    console.log( 'Starting the application...\n' )
+
     return spawn( 'node', [ 'node_modules/easy/server.js' ], { stdio: 'inherit' })
 }
